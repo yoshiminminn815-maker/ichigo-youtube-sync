@@ -1,0 +1,26 @@
+name: YouTube → Notion 自動同期
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # 毎朝9:00 JST (UTC 0:00)
+  workflow_dispatch:  # 手動実行ボタン
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pythonセットアップ
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: ライブラリインストール
+        run: pip install google-auth-oauthlib google-api-python-client "notion-client==2.2.1"
+
+      - name: YouTube → Notion 同期
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+        run: python sync.py
