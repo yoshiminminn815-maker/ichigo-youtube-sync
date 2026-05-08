@@ -24,3 +24,22 @@ jobs:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
         run: python sync.py
+
+      - name: LINE通知
+        env:
+          LINE_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
+          LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
+        run: |
+          python3 -c "
+          import os, urllib.request, json
+          from datetime import datetime, timezone, timedelta
+          JST = timezone(timedelta(hours=9))
+          now = datetime.now(JST).strftime('%Y年%-m月%-d日 %H:%M')
+          msg = f'🍓 いちごちゃんNotionデータ更新完了！\n{now}\n再生数・視聴率などが最新になりました✨'
+          req = urllib.request.Request('https://api.line.me/v2/bot/message/push',
+            data=json.dumps({'to': os.environ['LINE_USER_ID'], 'messages': [{'type': 'text', 'text': msg}]}).encode(),
+            headers={'Content-Type': 'application/json', 'Authorization': f'Bearer {os.environ[\"LINE_TOKEN\"]}'},
+            method='POST')
+          urllib.request.urlopen(req)
+          print('LINE通知送信完了')
+          "
